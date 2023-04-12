@@ -1,0 +1,51 @@
+---
+- name: install docker & docker compose & run docker-compose project 
+  hosts: all
+  become: yes
+  vars: 
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: install python
+      ansible.builtin.dnf: 
+        name: python3
+        update_cache: yes
+        state: present
+    - name: Uninstall requests RPM package
+      ansible.builtin.dnf:
+        name: python3-requests
+        state: absent
+    - name: install pip
+      ansible.builtin.dnf:
+        name: 
+            python-pip
+        state: present
+    - name: Install requests module using pip
+      pip:
+        name: requests==2.26.0
+        state: present
+    - name: install docker
+      yum:
+        name: docker
+        state: latest
+    
+    - name: Install docker compose
+      pip:
+        name: docker-compose
+        state: present
+    - name: install docker compose
+      get_url: 
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: start docker daemon
+      systemd:
+        name: docker
+        state: started
+    - name: copy docker-compose
+      copy:
+        src: /home/ubuntu/docker-compose.yml
+        dest: /home/ec2-user/docker-compose.yml
+    - name: run docker-compose
+      docker_compose:
+        project_src: /home/ec2-user/
+        state: present
